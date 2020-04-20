@@ -1,0 +1,26 @@
+<html>
+<head>
+<title>Form!</title>
+</head>
+<body>
+<h1>Our form will be here!</h1>
+<form method="POST" action="{{ url_for('form') }}">
+    {{ form.csrf_token }}
+    {{ form.username.label }}
+    {{ form.username }}
+    <u1>
+    {% for error in form.username.errors %}
+        <li style="color:red;">{{ error }}</li>
+    {% endfor %}
+    </u1>
+    {{ form.password.label }}
+    {{ form.password }}
+    <u1>
+    {% for error in form.password.errors %}
+        <li style="color:red;">{{ error }}</li>
+    {% endfor %}
+    </u1>
+    <input type="submit" value="Submit">
+</form>
+</body>
+</html>
