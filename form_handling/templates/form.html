@@ -8,18 +8,18 @@
     {{ form.csrf_token }}
     {{ form.username.label }}
     {{ form.username }}
-    <u1>
+    <ul>
     {% for error in form.username.errors %}
         <li style="color:red;">{{ error }}</li>
     {% endfor %}
-    </u1>
+    </ul>
     {{ form.password.label }}
     {{ form.password }}
-    <u1>
+    <ul>
     {% for error in form.password.errors %}
         <li style="color:red;">{{ error }}</li>
     {% endfor %}
-    </u1>
+    </ul>
     <input type="submit" value="Submit">
 </form>
 </body>
