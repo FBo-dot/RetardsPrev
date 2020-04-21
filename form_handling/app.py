@@ -16,12 +16,14 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'Thisisasecret!'
 
 class LoginForm(FlaskForm):
+    """
     username = StringField('username',
                            validators=[InputRequired('A username is required!'),
                                        Length(min=5, max=10, message='Must be between 5 and 10 characters.')])
     password = PasswordField('password',
                              validators=[InputRequired('Password is required!'),
                                          AnyOf(values=['password', 'secret'])])
+    """
     dep_date = DateField('departure date', format='%Y-%m-%d',
                          validators=[InputRequired('A departure date is required')])
     dep_time = TimeField('departure time', format='%H:%M',
@@ -33,10 +35,8 @@ def form():
     
     if form.validate_on_submit():
         dep_datetime = datetime.combine(form.dep_date.data, form.dep_time.data)
-#        dep_datetime = datetime.combine(datetime.strptime(form.dep_date.data, '%Y-%m-%d'), datetime.strptime(form.dep_time.data, '%H:%M:S'))
         dep_datetime_str = dep_datetime.strftime('%Y-%m-%d %H:%M')
-        result_str = '<h1>The username is {}. The password is {}.'.format(form.username.data, form.password.data)
-#        result_str = result_str + ' The departure date is {}. The departure time is {}.'.format(form.dep_date.data, form.dep_time.data)
+        result_str = '<h1>'
         result_str = result_str + 'The departure date and time is {}.'.format(dep_datetime_str)
         return  result_str
     return render_template('form.html', form=form)
