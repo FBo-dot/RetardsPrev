@@ -7,12 +7,18 @@
 <body>
 <h1>Our form will be here!</h1>
 <form method="POST" action="{{ url_for('form') }}">
-    {{ form.csrf_token }}
 
+    {{ form.csrf_token }}
+<dl>
     {{ render_field(form.username) }}
     
     {{ render_field(form.password) }}
     
+    {{ render_field(form.dep_date) }}
+    
+    {{ render_field(form.dep_time) }}
+
+</dl>    
     <input type="submit" value="Submit">
 </form>
 </body>
