@@ -7,7 +7,7 @@ Created on Mon Apr 20 14:30:40 2020
 
 from flask import Flask, render_template
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, TimeField
+from wtforms import StringField, PasswordField, TimeField, SelectField, IntegerField
 from wtforms.validators import InputRequired, Length, AnyOf
 from wtforms.fields.html5 import DateField
 
@@ -23,12 +23,25 @@ import json
 
 current_path=os.getcwd()
 saved_predictors_data_path = current_path + '\\saved_predictors_data.pkl'
+airports_list_path = current_path + '\\L_AIRPORT.csv'
+carriers_list_path = current_path + '\\L_UNIQUE_CARRIERS.csv'
 
 with open(saved_predictors_data_path, 'rb') as f:
     saved_target_attribs = pickle.load(f)
     saved_carrier_df = pickle.load(f)
     saved_airports_df = pickle.load(f)
     saved_arr_time_blk_labels = pickle.load(f)
+
+l_carriers = pd.read_csv(carriers_list_path)
+l_airports = pd.read_csv(airports_list_path)
+
+carriers = pd.merge(saved_carrier_df, l_carriers, left_on=['CARRIER'], right_on=['Code'], sort=True, how='left')
+carriers.sort_values(by=['Description'], inplace=True)
+carrier_tuples = [row for row in carriers[['CARRIER', 'Description']].itertuples(index=False)]
+
+airports = pd.merge(saved_airports_df, l_airports, left_on=['AirportID'], right_on=['Code'], sort=True, how='left')
+airports.sort_values(by=['Description'], inplace=True)
+airport_tuples = [row for row in airports[['AirportID', 'Description']].itertuples(index=False)]
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'Thisisasecret!'
@@ -50,6 +63,14 @@ class LoginForm(FlaskForm):
                          validators=[InputRequired('An arrival date is required')])
     arr_time = TimeField('arrival time', format='%H:%M',
                          validators=[InputRequired('Time required as hh:mm')])
+    carrier = SelectField('carrier', choices=carrier_tuples,
+                         validators=[InputRequired('Select a carrier')])
+    origin = SelectField('origin', choices=airport_tuples,
+                         validators=[InputRequired('Select an origin airport')])
+    destination = SelectField('destination', choices=airport_tuples,
+                         validators=[InputRequired('Select a destination airport')])
+    dep_delay = IntegerField('departure delay in minutes',
+                         validators=[InputRequired('The departure delay is required')])
 
 def build_X_features(dep_datetime, arr_datetime, origin='JFK', destination='ATL', carrier='WN', dep_delay=16):
     return pd.DataFrame({
@@ -85,7 +106,14 @@ def form():
         result_str = result_str + '<li>The arrival date and time is {}.</li>'.format(arr_datetime_str)
         result_str = result_str + '</u1>'
 #        query_df =  build_X_features(dep_datetime, arr_datetime)
-        X_features = build_X_features(dep_datetime, arr_datetime)
+        X_features = build_X_features(dep_datetime,
+                                      arr_datetime,
+                                      form.origin.data,
+                                      form.destination.data,
+                                      form.carrier.data,
+                                      form.dep_delay.data)
+#        return json.dumps(carrier_tuple)
+#        return carriers.to_json(orient="records")
         return X_features.to_json(orient="records")
 #        return  result_str
     return render_template('form.html', form=form)
