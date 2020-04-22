@@ -19,6 +19,8 @@ import os
 
 import pickle
 
+import json
+
 current_path=os.getcwd()
 saved_predictors_data_path = current_path + '\\saved_predictors_data.pkl'
 
@@ -50,32 +52,24 @@ class LoginForm(FlaskForm):
                          validators=[InputRequired('Time required as hh:mm')])
 
 def build_X_features(dep_datetime, arr_datetime, origin='JFK', destination='ATL', carrier='WN', dep_delay=16):
-    query_df = pd.DataFrame({
+    return pd.DataFrame({
         'MONTH': dep_datetime.month,
         'DAY_OF_MONTH': dep_datetime.day,
         'DAY_OF_WEEK': dep_datetime.weekday() + 1,  # Mo=1, ..., Su=7
-        'CRS_DEP_TIME': dep_datetime.hour * 100 + dep_datetime.min,
-        'CRS_ARR_TIME': arr_datetime.hour * 100 + arr_datetime.min,
-        'OriginSizes': 1,
-#        saved_airports_df[saved_airports_df['AirportID'] ==
-#                          origin]['OriginSizes'].values,
-        'DestSizes': 1,
-#        [saved_airports_df['AirportID'] ==
-#                          destination]['DestSizes'].values,
-        'CarrierSizes': 1,
-#        saved_carrier_df[saved_carrier_df['CARRIER'] == carrier]
-#        ['CarrierSizes'].values,
+        'CRS_DEP_TIME': dep_datetime.hour * 100 + dep_datetime.minute,
+        'CRS_ARR_TIME': arr_datetime.hour * 100 + arr_datetime.minute,
+        'OriginSizes': saved_airports_df[saved_airports_df['AirportID'] == origin]['OriginSizes'].values,
+        'DestSizes': saved_airports_df[saved_airports_df['AirportID'] == destination]['DestSizes'].values,
+        'CarrierSizes': saved_carrier_df[saved_carrier_df['CARRIER'] == carrier]['CarrierSizes'].values,
         'DAY_OF_YEAR': dep_datetime.timetuple().tm_yday,
         'WEEK_NUM': dep_datetime.isocalendar()[1],
         'DEP_DELAY': dep_delay,
         'CRS_ELAPSED_TIME': (arr_datetime - dep_datetime).seconds / 60,
-        'HDAYS': 1,
- #       hdays,
-        'ARR_TIME_BLK':'00-05',
-#        arr_time_blk,
-        'CARRIER': carrier
-    })
-    return query_df
+        'HDAYS': min(abs(dep_datetime - 
+                         USFederalHolidayCalendar.holidays(USFederalHolidayCalendar))).days,
+        'ARR_TIME_BLK': pd.cut([arr_datetime.hour], bins=[0] + list(range(6,25,1)),
+                               right=False, labels=saved_arr_time_blk_labels),
+        'CARRIER': carrier})
 
 @app.route('/form', methods=['GET', 'POST'])
 def form():
@@ -89,8 +83,11 @@ def form():
         result_str = '<u1>'
         result_str = result_str + '<li>The departure date and time is {}.</li>'.format(dep_datetime_str)
         result_str = result_str + '<li>The arrival date and time is {}.</li>'.format(arr_datetime_str)
-        result_str = result_str + '</u1>'.format(arr_datetime_str)
-        return  result_str
+        result_str = result_str + '</u1>'
+#        query_df =  build_X_features(dep_datetime, arr_datetime)
+        X_features = build_X_features(dep_datetime, arr_datetime)
+        return X_features.to_json(orient="records")
+#        return  result_str
     return render_template('form.html', form=form)
 
 if __name__ == '__main__':
