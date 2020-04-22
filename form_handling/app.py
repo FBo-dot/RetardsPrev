@@ -16,40 +16,12 @@ from datetime import datetime
 from pandas.tseries.holiday import *
 from pandas.tseries.offsets import CustomBusinessDay
 import os
+
 import pickle
 
-from sklearn.base import BaseEstimator, TransformerMixin
-# from .utils import SelectedFeatureDropper
-
 current_path=os.getcwd()
-saved_models_path = current_path + '\\final_models.pkl'
 saved_predictors_data_path = current_path + '\\saved_predictors_data.pkl'
 
-from sklearn.base import BaseEstimator, TransformerMixin
-
-class SelectedFeatureDropper(BaseEstimator, TransformerMixin):
-    def __init__(self, drop_first_feature=True): # Assumes first feature is 'DEP_DELAY'
-        self.drop_first_feature = drop_first_feature
-    def fit(self, X, y=None):
-        return self # nothing else todo
-    def transform(self, X, y=None):
-        if self.drop_first_feature:
-#            pdb.set_trace()
-            X = X.iloc[:,1:]
-        return X
-
-with open(saved_models_path,'rb') as f:
-    saved_full_pipeline = pickle.load(f)
-    saved_final_models = pickle.load(f)
-    saved_model_names = pickle.load(f)
-    saved_train_rmses = pickle.load(f)
-    saved_final_rmses = pickle.load(f)
-    saved_full_pipeline_1 = pickle.load(f)
-    saved_final_models_1 = pickle.load(f)
-    saved_model_names_1 = pickle.load(f)
-    saved_train_rmses_1 = pickle.load(f)
-    saved_final_rmses_1 = pickle.load(f)
-    
 with open(saved_predictors_data_path, 'rb') as f:
     saved_target_attribs = pickle.load(f)
     saved_carrier_df = pickle.load(f)
@@ -71,6 +43,10 @@ class LoginForm(FlaskForm):
     dep_date = DateField('departure date', format='%Y-%m-%d',
                          validators=[InputRequired('A departure date is required')])
     dep_time = TimeField('departure time', format='%H:%M',
+                         validators=[InputRequired('Time required as hh:mm')])
+    arr_date = DateField('arrival date', format='%Y-%m-%d',
+                         validators=[InputRequired('An arrival date is required')])
+    arr_time = TimeField('arrival time', format='%H:%M',
                          validators=[InputRequired('Time required as hh:mm')])
 
 def build_X_features(dep_datetime, arr_datetime, origin='JFK', destination='ATL', carrier='WN', dep_delay=16):
@@ -108,8 +84,12 @@ def form():
     if form.validate_on_submit():
         dep_datetime = datetime.combine(form.dep_date.data, form.dep_time.data)
         dep_datetime_str = dep_datetime.strftime('%Y-%m-%d %H:%M')
-        result_str = '<h1>'
-        result_str = result_str + 'The departure date and time is {}.'.format(dep_datetime_str)
+        arr_datetime = datetime.combine(form.arr_date.data, form.arr_time.data)
+        arr_datetime_str = arr_datetime.strftime('%Y-%m-%d %H:%M')
+        result_str = '<u1>'
+        result_str = result_str + '<li>The departure date and time is {}.</li>'.format(dep_datetime_str)
+        result_str = result_str + '<li>The arrival date and time is {}.</li>'.format(arr_datetime_str)
+        result_str = result_str + '</u1>'.format(arr_datetime_str)
         return  result_str
     return render_template('form.html', form=form)
 
