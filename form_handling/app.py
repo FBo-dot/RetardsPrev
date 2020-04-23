@@ -7,8 +7,8 @@ Created on Mon Apr 20 14:30:40 2020
 
 from flask import Flask, render_template
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, TimeField, SelectField, IntegerField
-from wtforms.validators import InputRequired, Length, AnyOf
+from wtforms import TimeField, SelectField, IntegerField
+from wtforms.validators import InputRequired
 from wtforms.fields.html5 import DateField
 
 import pandas as pd
@@ -21,16 +21,34 @@ import pickle
 
 import json
 
+from sklearn.base import BaseEstimator, TransformerMixin
+
+from utils import SelectedFeatureDropper
+
 current_path=os.getcwd()
 saved_predictors_data_path = current_path + '\\saved_predictors_data.pkl'
 airports_list_path = current_path + '\\L_AIRPORT.csv'
 carriers_list_path = current_path + '\\L_UNIQUE_CARRIERS.csv'
 
-with open(saved_predictors_data_path, 'rb') as f:
+saved_models_path = current_path + '\\final_models.pkl'
+
+with open(saved_predictors_data_path,'rb') as f:
     saved_target_attribs = pickle.load(f)
     saved_carrier_df = pickle.load(f)
     saved_airports_df = pickle.load(f)
     saved_arr_time_blk_labels = pickle.load(f)
+    
+with open(saved_models_path,'rb') as f:
+    saved_full_pipeline = pickle.load(f)
+    saved_final_models = pickle.load(f)
+    saved_model_names = pickle.load(f)
+    saved_train_rmses = pickle.load(f)
+    saved_final_rmses = pickle.load(f)
+    saved_full_pipeline_1 = pickle.load(f)
+    saved_final_models_1 = pickle.load(f)
+    saved_model_names_1 = pickle.load(f)
+    saved_train_rmses_1 = pickle.load(f)
+    saved_final_rmses_1 = pickle.load(f)
 
 l_carriers = pd.read_csv(carriers_list_path)
 l_airports = pd.read_csv(airports_list_path)
@@ -47,14 +65,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'Thisisasecret!'
 
 class LoginForm(FlaskForm):
-    """
-    username = StringField('username',
-                           validators=[InputRequired('A username is required!'),
-                                       Length(min=5, max=10, message='Must be between 5 and 10 characters.')])
-    password = PasswordField('password',
-                             validators=[InputRequired('Password is required!'),
-                                         AnyOf(values=['password', 'secret'])])
-    """
+
     dep_date = DateField('departure date', format='%Y-%m-%d',
                          validators=[InputRequired('A departure date is required')])
     dep_time = TimeField('departure time', format='%H:%M',
