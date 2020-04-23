@@ -23,7 +23,16 @@ import json
 
 from sklearn.base import BaseEstimator, TransformerMixin
 
-from utils import SelectedFeatureDropper
+class SelectedFeatureDropper(BaseEstimator, TransformerMixin):
+    def __init__(self, drop_first_feature=True): # Assumes first feature is 'DEP_DELAY'
+        self.drop_first_feature = drop_first_feature
+    def fit(self, X, y=None):
+        return self # nothing else todo
+    def transform(self, X, y=None):
+        if self.drop_first_feature:
+#            pdb.set_trace()
+            X = X.iloc[:,1:]
+        return X
 
 current_path=os.getcwd()
 saved_predictors_data_path = current_path + '\\saved_predictors_data.pkl'
