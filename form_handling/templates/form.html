@@ -1,34 +1,36 @@
 {% from "_render_field.html" import render_field %}
 
 <html>
-<head>
-<title>Form!</title>
-</head>
-<body>
-<h1>Our form will be here!</h1>
-<form method="POST" action="{{ url_for('form') }}">
-
-    {{ form.csrf_token }}
-<dl>
-    {{ render_field(form.dep_date) }}
-
-    {{ render_field(form.dep_time) }}
-
-    {{ render_field(form.arr_date) }}
-    
-    {{ render_field(form.arr_time) }}
-
-    {{ render_field(form.carrier) }}
-    
-    {{ render_field(form.origin) }}
-    
-    {{ render_field(form.destination) }}
-    
-    {{ render_field(form.dep_delay) }}
-    
-</dl>    
-    <input type="submit" value="Submit">
-</form>
-
-</body>
+    <head>
+    	<meta charset="utf-8">
+        <title>Delay forecast!</title>
+    </head>
+    <body>
+        <h1>What is the forecast for your flight delay?</h1>
+        <p>Please, enter your flight data below.</p>
+        <p>All fields are mandatory.</p>
+        <form method="POST" action="{{ url_for('form') }}">
+                {{ form.csrf_token }}
+            <dl>
+                {{ render_field(form.dep_date) }}
+            
+                {{ render_field(form.dep_time) }}
+            
+                {{ render_field(form.arr_date) }}
+                
+                {{ render_field(form.arr_time) }}
+            
+                {{ render_field(form.carrier) }}
+                
+                {{ render_field(form.origin) }}
+                
+                {{ render_field(form.destination) }}
+                
+                {{ render_field(form.dep_delay) }}
+                
+            </dl>    
+                <input type="submit" value="Submit">
+        </form>
+        
+    </body>
 </html>
