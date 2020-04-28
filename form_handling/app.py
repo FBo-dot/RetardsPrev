@@ -21,6 +21,10 @@ import joblib
 
 import json
 
+from sklearn.preprocessing import OrdinalEncoder, OneHotEncoder, MinMaxScaler, RobustScaler
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+
 current_path=os.getcwd()
 saved_predictors_data_path = os.path.join(current_path, 'saved_predictors_data.joblib')
 airports_list_path = os.path.join(current_path, 'L_AIRPORT.csv')
@@ -93,11 +97,13 @@ def build_X_features(dep_datetime, arr_datetime, origin='JFK', destination='ATL'
         'WEEK_NUM': dep_datetime.isocalendar()[1],
         'DEP_DELAY': dep_delay,
         'CRS_ELAPSED_TIME': (arr_datetime - dep_datetime).seconds / 60,
-        'HDAYS': min(abs(dep_datetime - 
-                         USFederalHolidayCalendar.holidays(USFederalHolidayCalendar))).days,
+        'HDAYS': min(abs(dep_datetime - USFederalHolidayCalendar.holidays(USFederalHolidayCalendar))).days,
         'ARR_TIME_BLK': pd.cut([arr_datetime.hour], bins=[0] + list(range(6,25,1)),
                                right=False, labels=saved_arr_time_blk_labels),
         'CARRIER': carrier})
+
+def predict_delay(X, pipeln, model):
+    return model.predict(pipeln.transform(X))
 
 @app.route('/form', methods=['GET', 'POST'])
 def form():
@@ -119,6 +125,14 @@ def form():
                                       form.destination.data,
                                       form.carrier.data,
                                       form.dep_delay.data)
+        a_priori_prediction = predict_delay(X_features, saved_full_pipeline, saved_final_models[0])
+        a_priori_error = saved_final_rmses[0]
+        cond_prediction = predict_delay(X_features, saved_full_pipeline_1, saved_final_models_1[0])
+        cond_error = saved_final_rmses_1[0]
+        print(a_priori_prediction)
+        print(a_priori_error)
+        print(cond_prediction)
+        print(cond_error)
 #        return json.dumps(carrier_tuple)
 #        return carriers.to_json(orient="records")
         return X_features.to_json(orient="records")
