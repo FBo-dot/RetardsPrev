@@ -17,47 +17,34 @@ from pandas.tseries.holiday import *
 from pandas.tseries.offsets import CustomBusinessDay
 import os
 
-import pickle
+import joblib
 
 import json
 
-from sklearn.base import BaseEstimator, TransformerMixin
-
-class SelectedFeatureDropper(BaseEstimator, TransformerMixin):
-    def __init__(self, drop_first_feature=True): # Assumes first feature is 'DEP_DELAY'
-        self.drop_first_feature = drop_first_feature
-    def fit(self, X, y=None):
-        return self # nothing else todo
-    def transform(self, X, y=None):
-        if self.drop_first_feature:
-#            pdb.set_trace()
-            X = X.iloc[:,1:]
-        return X
-
 current_path=os.getcwd()
-saved_predictors_data_path = current_path + '\\saved_predictors_data.pkl'
-airports_list_path = current_path + '\\L_AIRPORT.csv'
-carriers_list_path = current_path + '\\L_UNIQUE_CARRIERS.csv'
+saved_predictors_data_path = os.path.join(current_path, 'saved_predictors_data.joblib')
+airports_list_path = os.path.join(current_path, 'L_AIRPORT.csv')
+carriers_list_path = os.path.join(current_path, 'L_UNIQUE_CARRIERS.csv')
 
-saved_models_path = current_path + '\\final_models.pkl'
+saved_models_path = os.path.join(current_path, 'final_models.joblib')
 
 with open(saved_predictors_data_path,'rb') as f:
-    saved_target_attribs = pickle.load(f)
-    saved_carrier_df = pickle.load(f)
-    saved_airports_df = pickle.load(f)
-    saved_arr_time_blk_labels = pickle.load(f)
+    saved_target_attribs = joblib.load(f)
+    saved_carrier_df = joblib.load(f)
+    saved_airports_df = joblib.load(f)
+    saved_arr_time_blk_labels = joblib.load(f)
     
 with open(saved_models_path,'rb') as f:
-    saved_full_pipeline = pickle.load(f)
-    saved_final_models = pickle.load(f)
-    saved_model_names = pickle.load(f)
-    saved_train_rmses = pickle.load(f)
-    saved_final_rmses = pickle.load(f)
-    saved_full_pipeline_1 = pickle.load(f)
-    saved_final_models_1 = pickle.load(f)
-    saved_model_names_1 = pickle.load(f)
-    saved_train_rmses_1 = pickle.load(f)
-    saved_final_rmses_1 = pickle.load(f)
+    saved_full_pipeline = joblib.load(f)
+    saved_final_models = joblib.load(f)
+    saved_model_names = joblib.load(f)
+    saved_train_rmses = joblib.load(f)
+    saved_final_rmses = joblib.load(f)
+    saved_full_pipeline_1 = joblib.load(f)
+    saved_final_models_1 = joblib.load(f)
+    saved_model_names_1 = joblib.load(f)
+    saved_train_rmses_1 = joblib.load(f)
+    saved_final_rmses_1 = joblib.load(f)
 
 l_carriers = pd.read_csv(carriers_list_path)
 l_airports = pd.read_csv(airports_list_path)
