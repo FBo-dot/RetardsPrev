@@ -103,7 +103,7 @@ def build_X_features(dep_datetime, arr_datetime, origin='JFK', destination='ATL'
         'CARRIER': carrier})
 
 def predict_delay(X, pipeln, model):
-    return model.predict(pipeln.transform(X))
+    return model.predict(pipeln.transform(X))[0]
 
 @app.route('/form', methods=['GET', 'POST'])
 def form():
@@ -133,9 +133,19 @@ def form():
         print(a_priori_error)
         print(cond_prediction)
         print(cond_error)
+        return render_template('resultat.html',
+                               carrier=carriers[carriers['CARRIER']==form.carrier.data]['Description'].values[0],
+                               origin=airports[airports['AirportID']==form.origin.data]['Description'].values[0],
+                               destination=airports[airports['AirportID']==form.destination.data]['Description'].values[0],
+                               dep_dt=dep_datetime,
+                               arr_dt=arr_datetime,
+                               a_forecast='{:0.0f}'.format(a_priori_prediction),
+                               a_error='{:0.0f}'.format(a_priori_error),
+                               c_forecast='{:0.0f}'.format(cond_prediction),
+                               c_error='{:0.0f}'.format(cond_error))
 #        return json.dumps(carrier_tuple)
 #        return carriers.to_json(orient="records")
-        return X_features.to_json(orient="records")
+#        return X_features.to_json(orient="records")
 #        return  result_str
     return render_template('form.html', form=form)
 

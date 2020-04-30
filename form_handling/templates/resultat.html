@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Delay forecast results</title>
+	</head>
+	<body>
+	  <h1>This is the forecast of the delay of your flight</h1>
+	  <p>{{ carrier }} flight</p>
+	  <p>from {{ origin }} airport to {{ destination }} airport</p>
+	  <p>departure scheduled on {{ dep_dt.strftime('%d-%b-%Y') }} at {{ dep_dt.strftime('%H:%M') }}</p>
+	  <p>arrival scheduled on {{ arr_dt.strftime('%d-%b-%Y') }} at {{ arr_dt.strftime('%H:%M') }}.</p>
+	  <p>The <strong>a priori</strong> delay forecast is {{a_forecast}} minutes with an error of {{a_error}} minutes</p>
+	  <p>The <strong>conditional</strong> delay forecast is {{c_forecast}} minutes with an error of {{c_error}} minutes</p>
+	</body>
+</html>
+	
