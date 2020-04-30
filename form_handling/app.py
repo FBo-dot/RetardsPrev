@@ -7,8 +7,8 @@ Created on Mon Apr 20 14:30:40 2020
 
 from flask import Flask, render_template
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, TimeField, SelectField, IntegerField
-from wtforms.validators import InputRequired, Length, AnyOf
+from wtforms import TimeField, SelectField, IntegerField
+from wtforms.validators import InputRequired
 from wtforms.fields.html5 import DateField
 
 import pandas as pd
@@ -17,20 +17,38 @@ from pandas.tseries.holiday import *
 from pandas.tseries.offsets import CustomBusinessDay
 import os
 
-import pickle
+import joblib
 
 import json
 
-current_path=os.getcwd()
-saved_predictors_data_path = current_path + '\\saved_predictors_data.pkl'
-airports_list_path = current_path + '\\L_AIRPORT.csv'
-carriers_list_path = current_path + '\\L_UNIQUE_CARRIERS.csv'
+from sklearn.preprocessing import OrdinalEncoder, OneHotEncoder, MinMaxScaler, RobustScaler
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
 
-with open(saved_predictors_data_path, 'rb') as f:
-    saved_target_attribs = pickle.load(f)
-    saved_carrier_df = pickle.load(f)
-    saved_airports_df = pickle.load(f)
-    saved_arr_time_blk_labels = pickle.load(f)
+current_path=os.getcwd()
+saved_predictors_data_path = os.path.join(current_path, 'saved_predictors_data.joblib')
+airports_list_path = os.path.join(current_path, 'L_AIRPORT.csv')
+carriers_list_path = os.path.join(current_path, 'L_UNIQUE_CARRIERS.csv')
+
+saved_models_path = os.path.join(current_path, 'final_models.joblib')
+
+with open(saved_predictors_data_path,'rb') as f:
+    saved_target_attribs = joblib.load(f)
+    saved_carrier_df = joblib.load(f)
+    saved_airports_df = joblib.load(f)
+    saved_arr_time_blk_labels = joblib.load(f)
+    
+with open(saved_models_path,'rb') as f:
+    saved_full_pipeline = joblib.load(f)
+    saved_final_models = joblib.load(f)
+    saved_model_names = joblib.load(f)
+    saved_train_rmses = joblib.load(f)
+    saved_final_rmses = joblib.load(f)
+    saved_full_pipeline_1 = joblib.load(f)
+    saved_final_models_1 = joblib.load(f)
+    saved_model_names_1 = joblib.load(f)
+    saved_train_rmses_1 = joblib.load(f)
+    saved_final_rmses_1 = joblib.load(f)
 
 l_carriers = pd.read_csv(carriers_list_path)
 l_airports = pd.read_csv(airports_list_path)
@@ -47,14 +65,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'Thisisasecret!'
 
 class LoginForm(FlaskForm):
-    """
-    username = StringField('username',
-                           validators=[InputRequired('A username is required!'),
-                                       Length(min=5, max=10, message='Must be between 5 and 10 characters.')])
-    password = PasswordField('password',
-                             validators=[InputRequired('Password is required!'),
-                                         AnyOf(values=['password', 'secret'])])
-    """
+
     dep_date = DateField('departure date', format='%Y-%m-%d',
                          validators=[InputRequired('A departure date is required')])
     dep_time = TimeField('departure time', format='%H:%M',
@@ -86,11 +97,13 @@ def build_X_features(dep_datetime, arr_datetime, origin='JFK', destination='ATL'
         'WEEK_NUM': dep_datetime.isocalendar()[1],
         'DEP_DELAY': dep_delay,
         'CRS_ELAPSED_TIME': (arr_datetime - dep_datetime).seconds / 60,
-        'HDAYS': min(abs(dep_datetime - 
-                         USFederalHolidayCalendar.holidays(USFederalHolidayCalendar))).days,
+        'HDAYS': min(abs(dep_datetime - USFederalHolidayCalendar.holidays(USFederalHolidayCalendar))).days,
         'ARR_TIME_BLK': pd.cut([arr_datetime.hour], bins=[0] + list(range(6,25,1)),
                                right=False, labels=saved_arr_time_blk_labels),
         'CARRIER': carrier})
+
+def predict_delay(X, pipeln, model):
+    return model.predict(pipeln.transform(X))[0]
 
 @app.route('/form', methods=['GET', 'POST'])
 def form():
@@ -112,9 +125,27 @@ def form():
                                       form.destination.data,
                                       form.carrier.data,
                                       form.dep_delay.data)
+        a_priori_prediction = predict_delay(X_features, saved_full_pipeline, saved_final_models[0])
+        a_priori_error = saved_final_rmses[0]
+        cond_prediction = predict_delay(X_features, saved_full_pipeline_1, saved_final_models_1[0])
+        cond_error = saved_final_rmses_1[0]
+        print(a_priori_prediction)
+        print(a_priori_error)
+        print(cond_prediction)
+        print(cond_error)
+        return render_template('resultat.html',
+                               carrier=carriers[carriers['CARRIER']==form.carrier.data]['Description'].values[0],
+                               origin=airports[airports['AirportID']==form.origin.data]['Description'].values[0],
+                               destination=airports[airports['AirportID']==form.destination.data]['Description'].values[0],
+                               dep_dt=dep_datetime,
+                               arr_dt=arr_datetime,
+                               a_forecast='{:0.0f}'.format(a_priori_prediction),
+                               a_error='{:0.0f}'.format(a_priori_error),
+                               c_forecast='{:0.0f}'.format(cond_prediction),
+                               c_error='{:0.0f}'.format(cond_error))
 #        return json.dumps(carrier_tuple)
 #        return carriers.to_json(orient="records")
-        return X_features.to_json(orient="records")
+#        return X_features.to_json(orient="records")
 #        return  result_str
     return render_template('form.html', form=form)
 
