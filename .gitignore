@@ -1,6 +1,7 @@
 *.pyc
 __pycache__
 .cache/
+instance/
 
 *.pkl
 *.yml

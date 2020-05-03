@@ -21,31 +21,17 @@ import joblib
 
 import json
 
-from sklearn.preprocessing import OrdinalEncoder, OneHotEncoder, MinMaxScaler, RobustScaler
-from sklearn.pipeline import Pipeline
-from sklearn.compose import ColumnTransformer
-
-"""
-current_path=os.getcwd()
-saved_predictors_data_path = os.path.join(current_path, 'saved_predictors_data.joblib')
-airports_list_path = os.path.join(current_path, 'L_AIRPORT.csv')
-carriers_list_path = os.path.join(current_path, 'L_UNIQUE_CARRIERS.csv')
-
-saved_models_path = os.path.join(current_path, 'final_models.joblib')
-"""
-
-app = Flask(__name__.split('.')[0])
+app = Flask(__name__.split('.')[0], instance_relative_config=True)
+app.config.from_object('config')
+app.config.from_pyfile('config.py')
 app.config['SECRET_KEY'] = 'Thisisasecret!'
 # app.config['SERVER_NAME'] = '127.0.0.1:5000/'
 
+saved_predictors_data_path = os.path.join(app.static_folder, app.config['PREDICTORS_DATA_FILE'])
+airports_list_path = os.path.join(app.static_folder, app.config['AIRPORTS_LIST_FILE'])
+carriers_list_path = os.path.join(app.static_folder, app.config['CARRIERS_LIST_FILE'])
 
-datafiles_path = app.static_folder + '/datafiles'
-
-saved_predictors_data_path = os.path.join(datafiles_path, 'saved_predictors_data.joblib')
-airports_list_path = os.path.join(datafiles_path, 'L_AIRPORT.csv')
-carriers_list_path = os.path.join(datafiles_path, 'L_UNIQUE_CARRIERS.csv')
-
-saved_models_path = os.path.join(datafiles_path, 'final_models.joblib')
+saved_models_path = os.path.join(app.static_folder, app.config['MODELS_FILE'])
 
 """
 with app.app_context():
