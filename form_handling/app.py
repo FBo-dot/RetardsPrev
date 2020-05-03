@@ -5,7 +5,7 @@ Created on Mon Apr 20 14:30:40 2020
 @author: Fabretto
 """
 
-from flask import Flask, render_template
+from flask import Flask, render_template, url_for
 from flask_wtf import FlaskForm
 from wtforms import TimeField, SelectField, IntegerField
 from wtforms.validators import InputRequired
@@ -25,12 +25,36 @@ from sklearn.preprocessing import OrdinalEncoder, OneHotEncoder, MinMaxScaler, R
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 
+"""
 current_path=os.getcwd()
 saved_predictors_data_path = os.path.join(current_path, 'saved_predictors_data.joblib')
 airports_list_path = os.path.join(current_path, 'L_AIRPORT.csv')
 carriers_list_path = os.path.join(current_path, 'L_UNIQUE_CARRIERS.csv')
 
 saved_models_path = os.path.join(current_path, 'final_models.joblib')
+"""
+
+app = Flask(__name__.split('.')[0])
+app.config['SECRET_KEY'] = 'Thisisasecret!'
+# app.config['SERVER_NAME'] = '127.0.0.1:5000/'
+
+
+datafiles_path = app.static_folder + '/datafiles'
+
+saved_predictors_data_path = os.path.join(datafiles_path, 'saved_predictors_data.joblib')
+airports_list_path = os.path.join(datafiles_path, 'L_AIRPORT.csv')
+carriers_list_path = os.path.join(datafiles_path, 'L_UNIQUE_CARRIERS.csv')
+
+saved_models_path = os.path.join(datafiles_path, 'final_models.joblib')
+
+"""
+with app.app_context():
+    saved_predictors_data_path = url_for('static', filename='datafiles/saved_predictors_data.joblib', _external=True)
+    airports_list_path = url_for('static', filename='datafiles/L_AIRPORT.csv', _external=True)
+    carriers_list_path = url_for('static', filename='datafiles/L_UNIQUE_CARRIERS.csv', _external=True)
+    
+    saved_models_path = url_for('static', filename='datafiles/final_models.joblib', _external=True)
+"""
 
 with open(saved_predictors_data_path,'rb') as f:
     saved_target_attribs = joblib.load(f)
@@ -60,9 +84,6 @@ carrier_tuples = [row for row in carriers[['CARRIER', 'Description']].itertuples
 airports = pd.merge(saved_airports_df, l_airports, left_on=['AirportID'], right_on=['Code'], sort=True, how='left')
 airports.sort_values(by=['Description'], inplace=True)
 airport_tuples = [row for row in airports[['AirportID', 'Description']].itertuples(index=False)]
-
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'Thisisasecret!'
 
 class LoginForm(FlaskForm):
 
