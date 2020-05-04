@@ -10,7 +10,7 @@
     <body>
         <h1>What is the forecast of the delay of your flight?</h1>
         <p>Please, enter your flight data below.</p>
-        <p>All fields are mandatory.</p>
+        <p>All fields market with a '*' are mandatory.</p>
         <form method="POST" action="{{ url_for('form') }}">
                 {{ form.csrf_token }}
             <dl>

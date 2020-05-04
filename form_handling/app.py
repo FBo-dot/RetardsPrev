@@ -7,9 +7,9 @@ Created on Mon Apr 20 14:30:40 2020
 
 from flask import Flask, render_template, url_for
 from flask_wtf import FlaskForm
-from wtforms import TimeField, SelectField, IntegerField
-from wtforms.validators import InputRequired
-from wtforms.fields.html5 import DateField
+from wtforms import SelectField, IntegerField
+from wtforms.validators import InputRequired, optional
+from wtforms.fields.html5 import DateField, TimeField
 
 import pandas as pd
 from datetime import datetime
@@ -87,8 +87,7 @@ class LoginForm(FlaskForm):
                          validators=[InputRequired('Select an origin airport')])
     destination = SelectField('destination', choices=airport_tuples,
                          validators=[InputRequired('Select a destination airport')])
-    dep_delay = IntegerField('departure delay in minutes',
-                         validators=[InputRequired('The departure delay is required')])
+    dep_delay = IntegerField('departure delay in minutes',  [optional()])
 
 def build_X_features(dep_datetime, arr_datetime, origin='JFK', destination='ATL', carrier='WN', dep_delay=16):
     return pd.DataFrame({
@@ -135,7 +134,7 @@ def form():
                                       form.dep_delay.data)
         a_priori_prediction = predict_delay(X_features, saved_full_pipeline, saved_final_models[0])
         a_priori_error = saved_final_rmses[0]
-        cond_prediction = predict_delay(X_features, saved_full_pipeline_1, saved_final_models_1[0])
+        cond_prediction = predict_delay(X_features, saved_full_pipeline_1, saved_final_models_1[0]) if form.dep_delay.data else None
         cond_error = saved_final_rmses_1[0]
         print(a_priori_prediction)
         print(a_priori_error)

@@ -6,18 +6,21 @@
 	</head>
 	<body>
 	  <h1>This is the forecast of the delay of your flight</h1>
-	  <p>The <strong><em>{{ carrier }}</em></strong> flight</p>
-	  <p>from <strong><em>{{ origin }}</em></strong> airport to <strong><em>{{ destination }}</em></strong> airport</p>
-	  <p>departure scheduled on {{ dep_dt.strftime('%d-%b-%Y') }} at {{ dep_dt.strftime('%H:%M') }}</p>
-	  <p>arrival scheduled on {{ arr_dt.strftime('%d-%b-%Y') }} at {{ arr_dt.strftime('%H:%M') }}</p>
-	  <p>will have an <em>a priori</em> delay forecast of 
+	  <p> The <strong><em>{{ carrier }}</em></strong> flight<br>
+    	  from <strong><em>{{ origin }}</em></strong> airport<br>to <strong><em>{{ destination }}</em></strong> airport<br>
+    	  departure scheduled on {{ dep_dt.strftime('%d-%b-%Y') }} at {{ dep_dt.strftime('%H:%M') }}<br>
+    	  arrival scheduled on {{ arr_dt.strftime('%d-%b-%Y') }} at {{ arr_dt.strftime('%H:%M') }}<br>
+    	  will have an <em>a priori</em> delay forecast of 
     	  {% if a_forecast > 0 %}<strong style="color:red;">{% else %}<strong style="color:green;">{% endif %}
     	  {{'{:0.0f}'.format(a_forecast)}}</strong> minutes 
-    	  with an error of <strong>{{'{:0.0f}'.format(a_error)}}</strong> minutes</p>
-	  <p>and a <em>conditional</em> delay forecast of 
-    	  {% if c_forecast > 0 %}<strong style="color:red;">{% else %}<strong style="color:green;">{% endif %}
-    	  {{'{:0.0f}'.format(c_forecast)}}</strong> minutes 
-    	  with an error of <strong>{{'{:0.0f}'.format(c_error)}}</strong> minutes.</p>
+    	  with an error of <strong>{{'{:0.0f}'.format(a_error)}}</strong> minutes
+	  {%- if c_forecast %}
+    	  <br>and a <em>conditional</em> delay forecast of 
+        	  {% if c_forecast > 0 %}<strong style="color:red;">{% else %}<strong style="color:green;">{% endif %}
+        	  {{'{:0.0f}'.format(c_forecast)}}</strong> minutes 
+        	  with an error of <strong>{{'{:0.0f}'.format(c_error)}}</strong> minutes
+	  {%- endif -%}
+	  .</p>
 	</body>
 </html>
 	
