@@ -21,9 +21,10 @@ import joblib
 
 app = Flask(__name__.split('.')[0], instance_relative_config=True)
 app.config.from_object('config')
-app.config.from_pyfile('config.py')
-if os.environ.get('FLASK_ENV') == 'development':
-    app.config['SECRET_KEY'] = 'Thisisasecret!'
+# app.config.from_pyfile('config.py')
+app.config['SECRET_KEY'] = 'Thisisasecret!'
+#if os.environ.get('FLASK_ENV') == 'development':
+#    app.config['SECRET_KEY'] = 'Thisisasecret!'
 
 saved_predictors_data_path = os.path.join(app.static_folder, app.config['PREDICTORS_DATA_FILE'])
 airports_list_path = os.path.join(app.static_folder, app.config['AIRPORTS_LIST_FILE'])
