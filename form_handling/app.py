@@ -5,7 +5,7 @@ Created on Mon Apr 20 14:30:40 2020
 @author: Fabretto
 """
 
-from flask import Flask, render_template, url_for
+from flask import Flask, render_template
 from flask_wtf import FlaskForm
 from wtforms import SelectField, IntegerField
 from wtforms.validators import InputRequired, optional
@@ -19,28 +19,17 @@ import os
 
 import joblib
 
-import json
-
 app = Flask(__name__.split('.')[0], instance_relative_config=True)
 app.config.from_object('config')
 app.config.from_pyfile('config.py')
-app.config['SECRET_KEY'] = 'Thisisasecret!'
-# app.config['SERVER_NAME'] = '127.0.0.1:5000/'
+if os.environ.get('FLASK_ENV') == 'development':
+    app.config['SECRET_KEY'] = 'Thisisasecret!'
 
 saved_predictors_data_path = os.path.join(app.static_folder, app.config['PREDICTORS_DATA_FILE'])
 airports_list_path = os.path.join(app.static_folder, app.config['AIRPORTS_LIST_FILE'])
 carriers_list_path = os.path.join(app.static_folder, app.config['CARRIERS_LIST_FILE'])
 
 saved_models_path = os.path.join(app.static_folder, app.config['MODELS_FILE'])
-
-"""
-with app.app_context():
-    saved_predictors_data_path = url_for('static', filename='datafiles/saved_predictors_data.joblib', _external=True)
-    airports_list_path = url_for('static', filename='datafiles/L_AIRPORT.csv', _external=True)
-    carriers_list_path = url_for('static', filename='datafiles/L_UNIQUE_CARRIERS.csv', _external=True)
-    
-    saved_models_path = url_for('static', filename='datafiles/final_models.joblib', _external=True)
-"""
 
 with open(saved_predictors_data_path,'rb') as f:
     saved_target_attribs = joblib.load(f)
@@ -89,7 +78,7 @@ class LoginForm(FlaskForm):
                          validators=[InputRequired('Select a destination airport')])
     dep_delay = IntegerField('departure delay in minutes',  [optional()])
 
-def build_X_features(dep_datetime, arr_datetime, origin='JFK', destination='ATL', carrier='WN', dep_delay=16):
+def build_X_features(dep_datetime, arr_datetime, origin='JFK', destination='ATL', carrier='WN', dep_delay=None):
     return pd.DataFrame({
         'MONTH': dep_datetime.month,
         'DAY_OF_MONTH': dep_datetime.day,
@@ -118,14 +107,7 @@ def form():
     
     if form.validate_on_submit():
         dep_datetime = datetime.combine(form.dep_date.data, form.dep_time.data)
-        dep_datetime_str = dep_datetime.strftime('%Y-%m-%d %H:%M')
         arr_datetime = datetime.combine(form.arr_date.data, form.arr_time.data)
-        arr_datetime_str = arr_datetime.strftime('%Y-%m-%d %H:%M')
-        result_str = '<u1>'
-        result_str = result_str + '<li>The departure date and time is {}.</li>'.format(dep_datetime_str)
-        result_str = result_str + '<li>The arrival date and time is {}.</li>'.format(arr_datetime_str)
-        result_str = result_str + '</u1>'
-#        query_df =  build_X_features(dep_datetime, arr_datetime)
         X_features = build_X_features(dep_datetime,
                                       arr_datetime,
                                       form.origin.data,
@@ -136,10 +118,6 @@ def form():
         a_priori_error = saved_final_rmses[0]
         cond_prediction = predict_delay(X_features, saved_full_pipeline_1, saved_final_models_1[0]) if form.dep_delay.data else None
         cond_error = saved_final_rmses_1[0]
-        print(a_priori_prediction)
-        print(a_priori_error)
-        print(cond_prediction)
-        print(cond_error)
         return render_template('resultat.html',
                                carrier=carriers[carriers['CARRIER']==form.carrier.data]['Description'].values[0],
                                origin=airports[airports['AirportID']==form.origin.data]['Description'].values[0],
@@ -150,11 +128,4 @@ def form():
                                a_error=a_priori_error,
                                c_forecast=cond_prediction,
                                c_error=cond_error)
-#        return json.dumps(carrier_tuple)
-#        return carriers.to_json(orient="records")
-#        return X_features.to_json(orient="records")
-#        return  result_str
     return render_template('form.html', form=form)
-
-if __name__ == '__main__':
-    app.run(debug=True)
